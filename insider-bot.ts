@@ -2641,6 +2641,18 @@ export class InsiderBot extends EventEmitter {
     const watch = li?.scrapeWatches.get(wallet);
     const funderState = this.bundlerFunderWatch;
     if (!li?.active || !watch || !funderState || li.mint !== funderState.mint) {
+      if (li?.active && this.isFollowTokenLargeInsiderTrackedValidWallet(wallet)) {
+        this.log.warn(
+          "Large insider scrape tx dropped — no scrapeWatch for tracked valid wallet",
+          {
+            mint: li.mint,
+            wallet,
+            signature: tx.signature,
+            hasWatch: !!watch,
+            hasFunderState: !!funderState,
+          },
+        );
+      }
       return;
     }
     if (watch.observedTxSignatures.has(tx.signature)) return;
@@ -3599,7 +3611,7 @@ export class InsiderBot extends EventEmitter {
       this.phase !== "holding" ||
       this.positionSellTriggered
     ) {
-      this.log.debug("Follow-token watched wallet sell tx skipped — position guard", {
+      this.log.warn("Follow-token watched wallet sell tx skipped — position guard", {
         mint,
         wallet,
         action,
@@ -3612,7 +3624,7 @@ export class InsiderBot extends EventEmitter {
     }
 
     if (this.followTokenLargeInsiderExitOverrideActive()) {
-      this.log.debug("Follow-token watched wallet sell tx skipped — exit override active", {
+      this.log.warn("Follow-token watched wallet sell tx skipped — exit override active", {
         mint,
         wallet,
         action,
@@ -3631,7 +3643,7 @@ export class InsiderBot extends EventEmitter {
       !scrapeWatch ||
       !this.isFollowTokenLargeInsiderTrackedValidWallet(wallet)
     ) {
-      this.log.debug("Follow-token watched wallet sell tx skipped — not processable here", {
+      this.log.warn("Follow-token watched wallet sell tx skipped — not processable here", {
         mint,
         wallet,
         signature: tx.signature,
@@ -5390,7 +5402,14 @@ export class InsiderBot extends EventEmitter {
             ) {
               this.followTokenLargeInsiderState.validWallets.push(candidate.wallet);
             }
-            this.registerFollowTokenLargeInsiderValidWalletForExitMonitoring(candidate.wallet);
+            this.registerFollowTokenLargeInsiderValidWalletForExitMonitoring(
+              candidate.wallet,
+              {
+                tx: candidate.value.tx,
+                signature: candidate.value.signature,
+                timestamp: candidate.value.timestamp,
+              },
+            );
             const walletNumber = state.preLiFirstBuyObserverWallets.size;
             this.log.info("Pre-LI first-buy observer qualifying wallet", {
               mint,
@@ -5456,7 +5475,11 @@ export class InsiderBot extends EventEmitter {
         !this.followTokenLargeInsiderState.validWallets.includes(wallet)
       ) {
         this.followTokenLargeInsiderState.validWallets.push(wallet);
-        this.registerFollowTokenLargeInsiderValidWalletForExitMonitoring(wallet);
+        this.registerFollowTokenLargeInsiderValidWalletForExitMonitoring(wallet, {
+          tx: observed.tx,
+          signature: observed.signature,
+          timestamp: observed.timestamp,
+        });
       }
       this.log.info("Pre-LI first-buy observer qualifying wallet", {
         mint,
