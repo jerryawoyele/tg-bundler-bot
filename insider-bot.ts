@@ -26,7 +26,7 @@ const NATIVE_SOL_BALANCE_MINT =
 const INSIDER_HISTORY_LIMIT = 21;
 const LOW_FUNDING_DEV_BUY_SYNC_LIMIT = 10;
 /** Proceed with bot buy only while dev has fewer than this many mint buys after create (create tx excluded). */
-const DEV_BUY_COUNT_AFTER_CREATE_MAX_EXCLUSIVE = 3;
+const DEV_BUY_COUNT_AFTER_CREATE_MAX_EXCLUSIVE = 20;
 const REQUIRED_BUNDLER_MATCHES = 2;
 const INSIDER_RUG_MARKET_CAP_USD = 5_000;
 /** Live rug reset/sell when MC drops below this during pre-buy or in-position monitoring. */
